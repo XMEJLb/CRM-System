@@ -1,7 +1,8 @@
 import './App.css';
+import { TodosPage } from './pages/TodosPage/TodosPage';
 
 function App() {
-  return <></>;
+  return <TodosPage />;
 }
 
 export default App;
