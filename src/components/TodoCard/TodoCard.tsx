@@ -7,19 +7,41 @@ import checkIcon from '../../assets/check-icon.svg';
 import crossIcon from '../../assets/cross-icon.svg';
 export const TodoCard = ({
   children,
-  handleDelete,
   id,
-  finished,
-  setArrOfTodos,
-  arrOfTodos,
+  isDone,
+  fetchAllTodos,
 }: TodoCardProps) => {
-  const [isChecked, setIsChecked] = useState<boolean>(finished);
+  const [isChecked, setIsChecked] = useState<boolean>(isDone);
+
+  const handleDelete = async () => {
+    await fetch(`https://easydev.club/api/v1/todos/${id}`, {
+      method: 'DELETE',
+    });
+    await fetchAllTodos();
+  };
+
+  const putTodoTittle = async (title: string) => {
+    await fetch(`https://easydev.club/api/v1/todos/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        title: title,
+      }),
+    });
+    await fetchAllTodos();
+  };
+
+  const putTodoIsDone = async () => {
+    await fetch(`https://easydev.club/api/v1/todos/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        isDone: !isDone,
+      }),
+    });
+    await fetchAllTodos();
+  };
 
   const onHandleChange = () => {
-    const newArrOfTodos = arrOfTodos.map((el) =>
-      el.id === id ? { ...el, finished: !finished } : el
-    );
-    setArrOfTodos(newArrOfTodos);
+    putTodoIsDone();
     setIsChecked(!isChecked);
   };
 
@@ -45,12 +67,10 @@ export const TodoCard = ({
   };
 
   const handleSave = () => {
-    if (inputValue.trim()) {
-      if (inputValue.trim().length > 2) {
-        const newArrOfTodos = arrOfTodos.map((el) =>
-          el.id === id ? { ...el, text: inputValue } : el
-        );
-        setArrOfTodos(newArrOfTodos);
+    const inputValueTrimmed = inputValue.trim();
+    if (inputValueTrimmed) {
+      if (inputValueTrimmed.length > 2) {
+        putTodoTittle(inputValueTrimmed);
         setIsDisable((s) => !s);
       } else {
         inputRef.current?.focus();
@@ -86,13 +106,10 @@ export const TodoCard = ({
 
       {isDisable && (
         <div className={styles.buttonsWrapper}>
-          <button className={styles.buttonDelete} onClick={handleEdit}>
+          <button className={styles.button} onClick={handleEdit}>
             <img className={styles.icon} src={penIcon} alt="pen" />
           </button>
-          <button
-            className={styles.buttonDelete}
-            onClick={() => handleDelete(id)}
-          >
+          <button className={styles.button} onClick={() => handleDelete()}>
             <img className={styles.icon} src={binIcon} alt="bin" />
           </button>
         </div>
@@ -100,10 +117,10 @@ export const TodoCard = ({
 
       {!isDisable && (
         <div className={styles.buttonsWrapper}>
-          <button className={styles.buttonDelete} onClick={handleSave}>
+          <button className={styles.button} onClick={handleSave}>
             <img className={styles.icon} src={checkIcon} alt="check" />
           </button>
-          <button className={styles.buttonDelete} onClick={handleDeclineEdit}>
+          <button className={styles.button} onClick={handleDeclineEdit}>
             <img className={styles.icon} src={crossIcon} alt="cross" />
           </button>
         </div>

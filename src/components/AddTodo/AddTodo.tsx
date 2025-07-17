@@ -1,17 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '../Button/Button';
 import styles from './AddTodo.module.css';
 import type { AddTodoProps } from './AddTodo.props';
-export const AddTodo = ({ setArrOfTodos, arrOfTodos }: AddTodoProps) => {
+
+export const AddTodo = ({ fetchAllTodos }: AddTodoProps) => {
   const [todo, setTodo] = useState('');
 
+  const postNewTodo = async (title: string) => {
+    await fetch('https://easydev.club/api/v1/todos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: title,
+        isDone: false,
+      }),
+    });
+
+    await fetchAllTodos();
+  };
+
   const handleInput = () => {
-    if (todo.trim()) {
-      if (todo.trim().length > 2) {
-        setArrOfTodos([
-          { id: Date.now(), text: todo, finished: false },
-          ...arrOfTodos,
-        ]);
+    const todoTrimmed = todo.trim();
+    if (todoTrimmed) {
+      if (todoTrimmed.length > 2) {
+        postNewTodo(todoTrimmed);
         setTodo('');
       } else {
         alert('Заметка должна быть длиннее 2 символов');
@@ -25,10 +39,6 @@ export const AddTodo = ({ setArrOfTodos, arrOfTodos }: AddTodoProps) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTodo(e.target.value);
   };
-
-  useEffect(() => {
-    console.log(arrOfTodos);
-  }, [arrOfTodos]);
 
   return (
     <div className={styles.addtodo}>

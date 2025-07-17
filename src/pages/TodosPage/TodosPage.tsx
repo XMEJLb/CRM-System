@@ -1,51 +1,71 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AddTodo } from '../../components/AddTodo/AddTodo';
 import styles from './TodosPage.module.css';
 import { DisplaySwitcher } from '../../components/DisplaySwitcher/DisplaySwitcher';
 import { TodoCard } from '../../components/TodoCard/TodoCard';
 
 export const TodosPage = () => {
-  const [arrOfTodos, setArrOfTodos] = useState<
-    { id: number; text: string; finished: boolean }[]
-  >([]);
+  const fetchAllTodos = async () => {
+    const response = await fetch(
+      'https://easydev.club/api/v1/todos?filter=all'
+    );
+    const { data } = await response.json();
+    console.log([...data].reverse());
 
-  const handleDelete = (id: number) => {
-    const newArrOfTodos = arrOfTodos.filter((el) => el.id !== id);
-    setArrOfTodos([...newArrOfTodos]);
+    setArrOfTodos([...data].reverse());
   };
 
-  const [arrFilter, setArrFilter] = useState<'all' | 'active' | 'finished'>(
+  useEffect(() => {
+    fetchAllTodos();
+  }, []);
+
+  const [arrOfTodos, setArrOfTodos] = useState<
+    {
+      id: number;
+      title: string;
+      created: string;
+      isDone: boolean;
+    }[]
+  >([]);
+
+  const [arrFilter, setArrFilter] = useState<'all' | 'inWork' | 'completed'>(
     'all'
   );
 
   return (
     <>
       <h1>Ваши задачи</h1>
-      <AddTodo setArrOfTodos={setArrOfTodos} arrOfTodos={arrOfTodos} />
+      <AddTodo fetchAllTodos={fetchAllTodos} />
       <div className={styles.displaySwitcherWrapper}>
         <DisplaySwitcher
           isDisabled={arrFilter === 'all'}
           text={'Все'}
           count={arrOfTodos.length}
-          setArrFilter={() => setArrFilter('all')}
+          setArrFilter={() => {
+            fetchAllTodos();
+            setArrFilter('all');
+          }}
         />
         <DisplaySwitcher
           text={'Активные'}
-          isDisabled={arrFilter === 'active'}
-          setArrFilter={() => setArrFilter('active')}
+          isDisabled={arrFilter === 'inWork'}
+          setArrFilter={() => {
+            fetchAllTodos();
+            setArrFilter('inWork');
+          }}
           count={arrOfTodos.reduce(
-            (acc, el) => (!el.finished ? acc + 1 : acc),
+            (acc, el) => (!el.isDone ? acc + 1 : acc),
             0
           )}
         />
         <DisplaySwitcher
           text={'Завершенные'}
-          isDisabled={arrFilter === 'finished'}
-          setArrFilter={() => setArrFilter('finished')}
-          count={arrOfTodos.reduce(
-            (acc, el) => (el.finished ? acc + 1 : acc),
-            0
-          )}
+          isDisabled={arrFilter === 'completed'}
+          setArrFilter={() => {
+            fetchAllTodos();
+            setArrFilter('completed');
+          }}
+          count={arrOfTodos.reduce((acc, el) => (el.isDone ? acc + 1 : acc), 0)}
         />
       </div>
       <div className={styles.todoCardsWrapper}>
@@ -57,40 +77,40 @@ export const TodosPage = () => {
               arrOfTodos={arrOfTodos}
               key={el.id}
               id={el.id}
-              finished={el.finished}
-              handleDelete={handleDelete}
+              isDone={el.isDone}
+              fetchAllTodos={fetchAllTodos}
             >
-              {el.text}
+              {el.title}
             </TodoCard>
           ))}
-        {arrFilter === 'active' &&
+        {arrFilter === 'inWork' &&
           arrOfTodos
-            .filter((el) => el.finished === false)
+            .filter((el) => el.isDone === false)
             .map((el) => (
               <TodoCard
                 setArrOfTodos={setArrOfTodos}
                 arrOfTodos={arrOfTodos}
                 key={el.id}
                 id={el.id}
-                finished={el.finished}
-                handleDelete={handleDelete}
+                isDone={el.isDone}
+                fetchAllTodos={fetchAllTodos}
               >
-                {el.text}
+                {el.title}
               </TodoCard>
             ))}
-        {arrFilter === 'finished' &&
+        {arrFilter === 'completed' &&
           arrOfTodos
-            .filter((el) => el.finished === true)
+            .filter((el) => el.isDone === true)
             .map((el) => (
               <TodoCard
                 setArrOfTodos={setArrOfTodos}
                 arrOfTodos={arrOfTodos}
                 key={el.id}
                 id={el.id}
-                finished={el.finished}
-                handleDelete={handleDelete}
+                isDone={el.isDone}
+                fetchAllTodos={fetchAllTodos}
               >
-                {el.text}
+                {el.title}
               </TodoCard>
             ))}
       </div>
