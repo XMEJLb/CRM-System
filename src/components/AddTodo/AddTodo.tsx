@@ -7,12 +7,19 @@ export const AddTodo = ({ setArrOfTodos, arrOfTodos }: AddTodoProps) => {
 
   const handleInput = () => {
     if (todo.trim()) {
-      setArrOfTodos([
-        { id: Date.now(), text: todo, finished: false },
-        ...arrOfTodos,
-      ]);
+      if (todo.trim().length > 2) {
+        setArrOfTodos([
+          { id: Date.now(), text: todo, finished: false },
+          ...arrOfTodos,
+        ]);
+        setTodo('');
+      } else {
+        alert('Заметка должна быть длиннее 2 символов');
+      }
+    } else {
+      alert('Заметка не должна содержать только пробелы');
+      setTodo('');
     }
-    setTodo('');
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,6 +33,8 @@ export const AddTodo = ({ setArrOfTodos, arrOfTodos }: AddTodoProps) => {
   return (
     <div className={styles.addtodo}>
       <input
+        minLength={2}
+        maxLength={64}
         value={todo}
         onChange={handleInputChange}
         className={styles.input}
