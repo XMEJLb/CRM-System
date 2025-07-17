@@ -1,0 +1,11 @@
+.displaySwitcherWrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.todoCardsWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
