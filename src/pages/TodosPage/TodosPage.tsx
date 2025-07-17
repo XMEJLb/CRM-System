@@ -73,8 +73,6 @@ export const TodosPage = () => {
         {arrFilter === 'all' &&
           arrOfTodos.map((el) => (
             <TodoCard
-              setArrOfTodos={setArrOfTodos}
-              arrOfTodos={arrOfTodos}
               key={el.id}
               id={el.id}
               isDone={el.isDone}
@@ -88,8 +86,6 @@ export const TodosPage = () => {
             .filter((el) => el.isDone === false)
             .map((el) => (
               <TodoCard
-                setArrOfTodos={setArrOfTodos}
-                arrOfTodos={arrOfTodos}
                 key={el.id}
                 id={el.id}
                 isDone={el.isDone}
@@ -103,8 +99,6 @@ export const TodosPage = () => {
             .filter((el) => el.isDone === true)
             .map((el) => (
               <TodoCard
-                setArrOfTodos={setArrOfTodos}
-                arrOfTodos={arrOfTodos}
                 key={el.id}
                 id={el.id}
                 isDone={el.isDone}
