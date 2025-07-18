@@ -2,21 +2,12 @@ import { useEffect, useState } from 'react';
 import { AddTodo } from '../../components/AddTodo/AddTodo';
 import styles from './TodosPage.module.css';
 import { DisplaySwitcher } from '../../components/DisplaySwitcher/DisplaySwitcher';
-import { TodoCard } from '../../components/TodoCard/TodoCard';
+import { TodoList } from '../../components/TodoList/TodoList';
+import { fetchAllTodos } from '../../api/api';
 
 export const TodosPage = () => {
-  const fetchAllTodos = async () => {
-    const response = await fetch(
-      'https://easydev.club/api/v1/todos?filter=all'
-    );
-    const { data } = await response.json();
-    console.log([...data].reverse());
-
-    setArrOfTodos([...data].reverse());
-  };
-
   useEffect(() => {
-    fetchAllTodos();
+    fetchAllTodos(setArrOfTodos, setInfo);
   }, []);
 
   const [arrOfTodos, setArrOfTodos] = useState<
@@ -28,6 +19,12 @@ export const TodosPage = () => {
     }[]
   >([]);
 
+  const [info, setInfo] = useState<{
+    all: number;
+    completed: number;
+    inWork: number;
+  }>({ all: 0, completed: 0, inWork: 0 });
+
   const [arrFilter, setArrFilter] = useState<'all' | 'inWork' | 'completed'>(
     'all'
   );
@@ -35,14 +32,14 @@ export const TodosPage = () => {
   return (
     <>
       <h1>Ваши задачи</h1>
-      <AddTodo fetchAllTodos={fetchAllTodos} />
+      <AddTodo fetchAllTodos={() => fetchAllTodos(setArrOfTodos, setInfo)} />
       <div className={styles.displaySwitcherWrapper}>
         <DisplaySwitcher
           isDisabled={arrFilter === 'all'}
           text={'Все'}
-          count={arrOfTodos.length}
+          count={info.all}
           setArrFilter={() => {
-            fetchAllTodos();
+            fetchAllTodos(setArrOfTodos, setInfo);
             setArrFilter('all');
           }}
         />
@@ -50,64 +47,26 @@ export const TodosPage = () => {
           text={'Активные'}
           isDisabled={arrFilter === 'inWork'}
           setArrFilter={() => {
-            fetchAllTodos();
+            fetchAllTodos(setArrOfTodos, setInfo);
             setArrFilter('inWork');
           }}
-          count={arrOfTodos.reduce(
-            (acc, el) => (!el.isDone ? acc + 1 : acc),
-            0
-          )}
+          count={info.inWork}
         />
         <DisplaySwitcher
           text={'Завершенные'}
           isDisabled={arrFilter === 'completed'}
           setArrFilter={() => {
-            fetchAllTodos();
+            fetchAllTodos(setArrOfTodos, setInfo);
             setArrFilter('completed');
           }}
-          count={arrOfTodos.reduce((acc, el) => (el.isDone ? acc + 1 : acc), 0)}
+          count={info.completed}
         />
       </div>
-      <div className={styles.todoCardsWrapper}>
-        {!arrOfTodos.length && 'Нет задач'}
-        {arrFilter === 'all' &&
-          arrOfTodos.map((el) => (
-            <TodoCard
-              key={el.id}
-              id={el.id}
-              isDone={el.isDone}
-              fetchAllTodos={fetchAllTodos}
-            >
-              {el.title}
-            </TodoCard>
-          ))}
-        {arrFilter === 'inWork' &&
-          arrOfTodos
-            .filter((el) => el.isDone === false)
-            .map((el) => (
-              <TodoCard
-                key={el.id}
-                id={el.id}
-                isDone={el.isDone}
-                fetchAllTodos={fetchAllTodos}
-              >
-                {el.title}
-              </TodoCard>
-            ))}
-        {arrFilter === 'completed' &&
-          arrOfTodos
-            .filter((el) => el.isDone === true)
-            .map((el) => (
-              <TodoCard
-                key={el.id}
-                id={el.id}
-                isDone={el.isDone}
-                fetchAllTodos={fetchAllTodos}
-              >
-                {el.title}
-              </TodoCard>
-            ))}
-      </div>
+      <TodoList
+        arrOfTodos={arrOfTodos}
+        arrFilter={arrFilter}
+        fetchAllTodos={() => fetchAllTodos(setArrOfTodos, setInfo)}
+      />
     </>
   );
 };
