@@ -5,44 +5,26 @@ import binIcon from '../../assets/bin-icon.svg';
 import penIcon from '../../assets/pen-icon.svg';
 import checkIcon from '../../assets/check-icon.svg';
 import crossIcon from '../../assets/cross-icon.svg';
+import { deleteTodo, putTodoIsDone, putTodoTitle } from '../../api/api';
 export const TodoCard = ({
   children,
   id,
   isDone,
   fetchAllTodos,
 }: TodoCardProps) => {
-  const [isChecked, setIsChecked] = useState<boolean>(isDone);
-
-  const handleDelete = async () => {
-    await fetch(`https://easydev.club/api/v1/todos/${id}`, {
-      method: 'DELETE',
-    });
+  const handleDelete = async (id: number) => {
+    await deleteTodo(id);
     await fetchAllTodos();
   };
 
-  const putTodoTittle = async (title: string) => {
-    await fetch(`https://easydev.club/api/v1/todos/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify({
-        title: title,
-      }),
-    });
+  const updateTodoTittle = async (title: string, id: number) => {
+    putTodoTitle(title, id);
     await fetchAllTodos();
   };
 
-  const putTodoIsDone = async () => {
-    await fetch(`https://easydev.club/api/v1/todos/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify({
-        isDone: !isDone,
-      }),
-    });
+  const changeTodoIsDone = async (isDone: boolean, id: number) => {
+    await putTodoIsDone(isDone, id);
     await fetchAllTodos();
-  };
-
-  const onHandleChange = () => {
-    putTodoIsDone();
-    setIsChecked(!isChecked);
   };
 
   const [inputValue, setInputValue] = useState<string>(children);
@@ -70,7 +52,7 @@ export const TodoCard = ({
     const inputValueTrimmed = inputValue.trim();
     if (inputValueTrimmed) {
       if (inputValueTrimmed.length > 2) {
-        putTodoTittle(inputValueTrimmed);
+        updateTodoTittle(inputValueTrimmed, id);
         setIsDisable((s) => !s);
       } else {
         inputRef.current?.focus();
@@ -92,13 +74,17 @@ export const TodoCard = ({
 
   return (
     <div className={styles.todoCard}>
-      <input type="checkbox" checked={isChecked} onChange={onHandleChange} />
+      <input
+        type="checkbox"
+        checked={isDone}
+        onChange={() => changeTodoIsDone(isDone, id)}
+      />
       <input
         ref={inputRef}
         type="text"
         minLength={2}
         maxLength={64}
-        className={`${styles.input} ${isChecked ? styles.checked : ''}`}
+        className={`${styles.input} ${isDone ? styles.checked : ''}`}
         value={inputValue}
         onChange={handleInputChange}
         disabled={isDisable}
@@ -109,7 +95,7 @@ export const TodoCard = ({
           <button className={styles.button} onClick={handleEdit}>
             <img className={styles.icon} src={penIcon} alt="pen" />
           </button>
-          <button className={styles.button} onClick={() => handleDelete()}>
+          <button className={styles.button} onClick={() => handleDelete(id)}>
             <img className={styles.icon} src={binIcon} alt="bin" />
           </button>
         </div>

@@ -2,22 +2,13 @@ import { useState } from 'react';
 import { Button } from '../Button/Button';
 import styles from './AddTodo.module.css';
 import type { AddTodoProps } from './AddTodo.props';
+import { postNewTodo } from '../../api/api';
 
 export const AddTodo = ({ fetchAllTodos }: AddTodoProps) => {
   const [todo, setTodo] = useState('');
 
-  const postNewTodo = async (title: string) => {
-    await fetch('https://easydev.club/api/v1/todos', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        title: title,
-        isDone: false,
-      }),
-    });
-
+  const addNewTodo = async (title: string) => {
+    await postNewTodo(title);
     await fetchAllTodos();
   };
 
@@ -25,7 +16,7 @@ export const AddTodo = ({ fetchAllTodos }: AddTodoProps) => {
     const todoTrimmed = todo.trim();
     if (todoTrimmed) {
       if (todoTrimmed.length > 2) {
-        postNewTodo(todoTrimmed);
+        addNewTodo(todoTrimmed);
         setTodo('');
       } else {
         alert('Заметка должна быть длиннее 2 символов');
