@@ -1,85 +1,67 @@
-export const fetchAllTodos = async (
-  setArr: React.Dispatch<
-    React.SetStateAction<
-      {
-        id: number;
-        title: string;
-        created: string;
-        isDone: boolean;
-      }[]
-    >
-  >,
-  setInfo: React.Dispatch<
-    React.SetStateAction<{
-      all: number;
-      completed: number;
-      inWork: number;
-    }>
-  >
-) => {
-  try {
-    const response = await fetch(
-      'https://easydev.club/api/v1/todos?filter=all'
-    );
-    const { data, info } = await response.json();
-    console.log([...data].reverse());
+import type { Todo, Info } from '../types/types'
 
-    setArr([...data].reverse());
-    setInfo(info);
-  } catch (error) {
-    console.error(error);
+export const getTodos = async (
+  filter: 'all' | 'inWork' | 'completed'
+): Promise<{ todos: Todo[]; info: Info } | undefined> => {
+  const response = await fetch(
+    `https://easydev.club/api/v1/todos?filter=${filter}`
+  )
+
+  if (!response.ok) {
+    throw new Error(`${response.status}`)
   }
-};
+
+  const { data, info } = await response.json()
+  const todos = data
+
+  return { todos, info }
+}
 
 export const postNewTodo = async (title: string) => {
-  try {
-    await fetch('https://easydev.club/api/v1/todos', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        title: title,
-        isDone: false,
-      }),
-    });
-  } catch (error) {
-    console.error(error);
+  const response = await fetch('https://easydev.club/api/v1/todos', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      title: title,
+      isDone: false,
+    }),
+  })
+  if (!response.ok) {
+    throw new Error(`${response.status}`)
   }
-};
+}
 
 export const deleteTodo = async (id: number) => {
-  try {
-    await fetch(`https://easydev.club/api/v1/todos/${id}`, {
-      method: 'DELETE',
-    });
-  } catch (error) {
-    console.error(error);
+  const response = await fetch(`https://easydev.club/api/v1/todos/${id}`, {
+    method: 'DELETE',
+  })
+  if (!response.ok) {
+    throw new Error(`${response.status}`)
   }
-};
+}
 
 export const putTodoTitle = async (title: string, id: number) => {
-  try {
-    await fetch(`https://easydev.club/api/v1/todos/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify({
-        title: title,
-      }),
-    });
-  } catch (error) {
-    console.error(error);
+  const response = await fetch(`https://easydev.club/api/v1/todos/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      title: title,
+    }),
+  })
+  if (!response.ok) {
+    throw new Error(`${response.status}`)
   }
-};
+}
 
 export const putTodoIsDone = async (isDone: boolean, id: number) => {
-  try {
-    await fetch(`https://easydev.club/api/v1/todos/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify({
-        isDone: !isDone,
-      }),
-    });
-  } catch (error) {
-    console.error(error);
+  const response = await fetch(`https://easydev.club/api/v1/todos/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      isDone: !isDone,
+    }),
+  })
+  if (!response.ok) {
+    throw new Error(`${response.status}`)
   }
-};
+}

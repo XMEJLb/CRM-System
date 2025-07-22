@@ -1,38 +1,42 @@
-import { useState } from 'react';
-import { Button } from '../Button/Button';
-import styles from './AddTodo.module.css';
-import type { AddTodoProps } from './AddTodo.props';
-import { postNewTodo } from '../../api/api';
+import { useState } from 'react'
 
-export const AddTodo = ({ fetchAllTodos }: AddTodoProps) => {
-  const [todo, setTodo] = useState('');
+import styles from './AddTodo.module.css'
+import { postNewTodo } from '@/api/api'
+import { Button } from '@/UI/Button/Button'
 
-  const addNewTodo = async (title: string) => {
-    await postNewTodo(title);
-    await fetchAllTodos();
-  };
+interface AddTodoProps {
+  updateTodosInfo: () => Promise<void>
+}
 
-  const handleInput = () => {
-    const todoTrimmed = todo.trim();
-    if (todoTrimmed) {
-      if (todoTrimmed.length > 2) {
-        addNewTodo(todoTrimmed);
-        setTodo('');
-      } else {
-        alert('Заметка должна быть длиннее 2 символов');
+export const AddTodo = ({ updateTodosInfo }: AddTodoProps) => {
+  const [todo, setTodo] = useState('')
+
+  const handleInput = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const todoTrimmed = todo.trim()
+
+    if (todoTrimmed.length > 2 && todoTrimmed.length < 64) {
+      try {
+        await postNewTodo(todoTrimmed)
+        await updateTodosInfo()
+        setTodo('')
+        return
+      } catch (error) {
+        alert(`Возникла ошибка ${error}`)
       }
-    } else {
-      alert('Заметка не должна содержать только пробелы');
-      setTodo('');
     }
-  };
+
+    alert(
+      'Поле должно быть от 2 до 64 символов и не состоять только из пробелов'
+    )
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTodo(e.target.value);
-  };
+    setTodo(e.target.value)
+  }
 
   return (
-    <div className={styles.addtodo}>
+    <form onSubmit={handleInput} className={styles.addtodo}>
       <input
         minLength={2}
         maxLength={64}
@@ -41,7 +45,7 @@ export const AddTodo = ({ fetchAllTodos }: AddTodoProps) => {
         className={styles.input}
         type="text"
       />
-      <Button onClick={handleInput}>Добавить</Button>
-    </div>
-  );
-};
+      <Button type="submit">Добавить</Button>
+    </form>
+  )
+}

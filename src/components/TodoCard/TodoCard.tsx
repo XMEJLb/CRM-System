@@ -1,116 +1,123 @@
-import { useEffect, useRef, useState } from 'react';
-import styles from './TodoCard.module.css';
-import type { TodoCardProps } from './TodoCard.props';
-import binIcon from '../../assets/bin-icon.svg';
-import penIcon from '../../assets/pen-icon.svg';
-import checkIcon from '../../assets/check-icon.svg';
-import crossIcon from '../../assets/cross-icon.svg';
-import { deleteTodo, putTodoIsDone, putTodoTitle } from '../../api/api';
+import { deleteTodo, putTodoIsDone, putTodoTitle } from '@/api/api'
+import { useState } from 'react'
+import styles from './TodoCard.module.css'
+import binIcon from '@assets/bin-icon.svg'
+import penIcon from '@assets/pen-icon.svg'
+import checkIcon from '@assets/check-icon.svg'
+import crossIcon from '@assets/cross-icon.svg'
+import { ButtonIcon } from '@/UI/ButtonIcon/ButtonIcon'
+
+interface TodoCardProps {
+  title: string
+  id: number
+  isDone: boolean
+  updateTodosInfo: () => Promise<void>
+}
+
 export const TodoCard = ({
-  children,
+  title,
   id,
   isDone,
-  fetchAllTodos,
+  updateTodosInfo,
 }: TodoCardProps) => {
   const handleDelete = async (id: number) => {
-    await deleteTodo(id);
-    await fetchAllTodos();
-  };
+    try {
+      await deleteTodo(id)
+      await updateTodosInfo()
+    } catch (error) {
+      alert(`Возникла ошибка ${error}`)
+    }
+  }
 
   const updateTodoTittle = async (title: string, id: number) => {
-    putTodoTitle(title, id);
-    await fetchAllTodos();
-  };
+    try {
+      await putTodoTitle(title, id)
+      await updateTodosInfo()
+    } catch (error) {
+      alert(`Возникла ошибка ${error}`)
+    }
+  }
 
   const changeTodoIsDone = async (isDone: boolean, id: number) => {
-    await putTodoIsDone(isDone, id);
-    await fetchAllTodos();
-  };
+    try {
+      await putTodoIsDone(isDone, id)
+      await updateTodosInfo()
+    } catch (error) {
+      alert(`Возникла ошибка ${error}`)
+    }
+  }
 
-  const [inputValue, setInputValue] = useState<string>(children);
-  const [inputValuebeforEdit, setInputValuebeforEdit] =
-    useState<string>(children);
+  const [inputValue, setInputValue] = useState<string>(title)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
-  };
+    setInputValue(e.target.value)
+  }
 
-  const [isDisable, setIsDisable] = useState<boolean>(true);
+  const [isEdit, setIsEdit] = useState<boolean>(true)
 
-  useEffect(() => {
-    if (!isDisable) {
-      inputRef.current?.focus();
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const inputValueTrimmed = inputValue.trim()
+    if (inputValueTrimmed.length > 2 && inputValueTrimmed.length < 64) {
+      await updateTodoTittle(inputValueTrimmed, id)
+      setIsEdit(true)
+      return
     }
-  }, [isDisable]);
-
-  const handleEdit = () => {
-    setIsDisable((s) => !s);
-    setInputValuebeforEdit(inputValue);
-  };
-
-  const handleSave = () => {
-    const inputValueTrimmed = inputValue.trim();
-    if (inputValueTrimmed) {
-      if (inputValueTrimmed.length > 2) {
-        updateTodoTittle(inputValueTrimmed, id);
-        setIsDisable((s) => !s);
-      } else {
-        inputRef.current?.focus();
-        alert('Заметка должна быть длиннее 2 символов');
-      }
-    } else {
-      setInputValue('');
-      inputRef.current?.focus();
-      alert('Заметка не должна содержать только пробелы');
-    }
-  };
+    alert('Поле должно быть от 2 до 64 символов и не состоять из пробелов')
+  }
 
   const handleDeclineEdit = () => {
-    setIsDisable((s) => !s);
-    setInputValue(inputValuebeforEdit);
-  };
-
-  const inputRef = useRef<HTMLInputElement>(null);
+    setIsEdit(true)
+    setInputValue(title)
+  }
 
   return (
     <div className={styles.todoCard}>
       <input
+        className={styles.checkbox}
         type="checkbox"
         checked={isDone}
         onChange={() => changeTodoIsDone(isDone, id)}
       />
-      <input
-        ref={inputRef}
-        type="text"
-        minLength={2}
-        maxLength={64}
-        className={`${styles.input} ${isDone ? styles.checked : ''}`}
-        value={inputValue}
-        onChange={handleInputChange}
-        disabled={isDisable}
-      />
-
-      {isDisable && (
-        <div className={styles.buttonsWrapper}>
-          <button className={styles.button} onClick={handleEdit}>
-            <img className={styles.icon} src={penIcon} alt="pen" />
-          </button>
-          <button className={styles.button} onClick={() => handleDelete(id)}>
-            <img className={styles.icon} src={binIcon} alt="bin" />
-          </button>
-        </div>
+      {isEdit && (
+        <>
+          <input
+            type="text"
+            minLength={2}
+            maxLength={64}
+            className={`${styles.input} ${isDone ? styles.checked : ''}`}
+            value={inputValue}
+            onChange={handleInputChange}
+            disabled={isEdit}
+          />
+          <div className={styles.buttonsWrapper}>
+            <ButtonIcon onClick={() => setIsEdit(false)} src={penIcon} />
+            <ButtonIcon onClick={() => handleDelete(id)} src={binIcon} />
+          </div>
+        </>
       )}
 
-      {!isDisable && (
-        <div className={styles.buttonsWrapper}>
-          <button className={styles.button} onClick={handleSave}>
-            <img className={styles.icon} src={checkIcon} alt="check" />
-          </button>
-          <button className={styles.button} onClick={handleDeclineEdit}>
-            <img className={styles.icon} src={crossIcon} alt="cross" />
-          </button>
-        </div>
+      {!isEdit && (
+        <form onSubmit={handleSave} className={styles.form}>
+          <input
+            type="text"
+            minLength={2}
+            maxLength={64}
+            className={`${styles.input} ${isDone ? styles.checked : ''}`}
+            value={inputValue}
+            onChange={handleInputChange}
+            disabled={isEdit}
+          />
+          <div className={styles.buttonsWrapper}>
+            <ButtonIcon type="submit" src={checkIcon} />
+            <ButtonIcon
+              type="button"
+              onClick={handleDeclineEdit}
+              src={crossIcon}
+            />
+          </div>
+        </form>
       )}
     </div>
-  );
-};
+  )
+}

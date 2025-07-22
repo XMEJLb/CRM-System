@@ -1,11 +1,17 @@
-import styles from './TodoList.module.css';
-import { TodoCard } from '../../components/TodoCard/TodoCard';
-import type { TodoListProps } from './TodoList.props';
+import type { Todo } from '@/types/types'
+import styles from './TodoList.module.css'
+import { TodoCard } from '@components/TodoCard/TodoCard'
+
+interface TodoListProps {
+  arrOfTodos: Todo[]
+  arrFilter: 'all' | 'inWork' | 'completed'
+  updateTodosInfo: () => Promise<void>
+}
 
 export const TodoList = ({
   arrOfTodos,
   arrFilter,
-  fetchAllTodos,
+  updateTodosInfo,
 }: TodoListProps) => {
   return (
     <div className={styles.todolist}>
@@ -16,10 +22,9 @@ export const TodoList = ({
             key={el.id}
             id={el.id}
             isDone={el.isDone}
-            fetchAllTodos={fetchAllTodos}
-          >
-            {el.title}
-          </TodoCard>
+            updateTodosInfo={updateTodosInfo}
+            title={el.title}
+          />
         ))}
       {arrFilter === 'inWork' &&
         arrOfTodos
@@ -29,10 +34,9 @@ export const TodoList = ({
               key={el.id}
               id={el.id}
               isDone={el.isDone}
-              fetchAllTodos={fetchAllTodos}
-            >
-              {el.title}
-            </TodoCard>
+              updateTodosInfo={updateTodosInfo}
+              title={el.title}
+            />
           ))}
       {arrFilter === 'completed' &&
         arrOfTodos
@@ -42,11 +46,10 @@ export const TodoList = ({
               key={el.id}
               id={el.id}
               isDone={el.isDone}
-              fetchAllTodos={fetchAllTodos}
-            >
-              {el.title}
-            </TodoCard>
+              updateTodosInfo={updateTodosInfo}
+              title={el.title}
+            />
           ))}
     </div>
-  );
-};
+  )
+}

@@ -1,0 +1,12 @@
+.button {
+  border: none;
+  cursor: pointer;
+  outline: 0;
+  background-color: rgb(255, 255, 255);
+  padding: 0;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+}
