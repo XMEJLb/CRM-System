@@ -9,26 +9,32 @@ interface AddTodoProps {
 }
 
 export const AddTodo = ({ updateTodosInfo }: AddTodoProps) => {
-  const [todo, setTodo] = useState('')
+  const [todo, setTodo] = useState<string>('')
+
+  const MIN_TODO_LENGTH = 2
+  const MAX_TODO_LENGTH = 63
 
   const handleInput = async (e: React.FormEvent) => {
     e.preventDefault()
     const todoTrimmed = todo.trim()
 
-    if (todoTrimmed.length > 2 && todoTrimmed.length < 64) {
-      try {
-        await postNewTodo(todoTrimmed)
-        await updateTodosInfo()
-        setTodo('')
-        return
-      } catch (error) {
-        alert(`Возникла ошибка ${error}`)
-      }
+    const isTooShort = length < MIN_TODO_LENGTH
+    const isTooLong = length > MAX_TODO_LENGTH
+
+    if (isTooShort || isTooLong) {
+      alert(
+        `Поле должно быть от ${MIN_TODO_LENGTH} до ${MAX_TODO_LENGTH} символов и не состоять только из пробелов`
+      )
+      return
     }
 
-    alert(
-      'Поле должно быть от 2 до 64 символов и не состоять только из пробелов'
-    )
+    try {
+      await postNewTodo(todoTrimmed)
+      await updateTodosInfo()
+      setTodo('')
+    } catch (error) {
+      alert(`Возникла ошибка: ${(error as Error).message}`)
+    }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

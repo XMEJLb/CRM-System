@@ -1,11 +1,10 @@
+import type { Filter, Info } from '@/types/types'
 import styles from './TabBar.module.css'
-
 import { TabButton } from '@/UI/TabButton/TabButton'
-import type { Info } from '@/types/types'
 
 interface TabBar {
-  setArrFilter: (filter: 'all' | 'inWork' | 'completed') => void
-  arrFilter: 'all' | 'inWork' | 'completed'
+  setArrFilter: (filter: Filter) => void
+  arrFilter: Filter
   info: Info
 }
 

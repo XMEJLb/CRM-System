@@ -1,28 +1,26 @@
 import { useEffect, useState } from 'react'
 
-import type { Info, Todo } from '@/types/types'
-import { getTodos } from '@/api/api'
+import type { Filter, Info, Todo } from '@/types/types'
+import { getTodosMeta } from '@/api/api'
 import { AddTodo } from '@/components/AddTodo/AddTodo'
 
 import { TodoList } from '@/components/TodoList/TodoList'
 import { TabBar } from '@/components/TabBar/TabBar'
 
 export const TodosPage = () => {
-  const [arrFilter, setArrFilter] = useState<'all' | 'inWork' | 'completed'>(
-    'all'
-  )
+  const [arrFilter, setArrFilter] = useState<Filter>('all')
 
   const [arrOfTodos, setArrOfTodos] = useState<Todo[]>([])
 
   const [info, setInfo] = useState<Info>({ all: 0, completed: 0, inWork: 0 })
 
-  const updateTodosInfo = async () => {
+  const updateTodos = async () => {
     try {
-      const result = await getTodos(arrFilter)
-      if (result) {
-        console.log(result.todos)
-        setArrOfTodos(result.todos.reverse())
-        setInfo(result.info)
+      const { data, info } = await getTodosMeta(arrFilter)
+      if (data && info) {
+        console.log(data, info)
+        setArrOfTodos(data.reverse())
+        setInfo(info)
       }
     } catch (error) {
       alert(`Возникла ошибка ${error}`)
@@ -30,18 +28,18 @@ export const TodosPage = () => {
   }
 
   useEffect(() => {
-    updateTodosInfo()
+    updateTodos()
   }, [arrFilter])
 
   return (
     <>
       <h1>Ваши задачи</h1>
-      <AddTodo updateTodosInfo={() => updateTodosInfo()} />
+      <AddTodo updateTodosInfo={updateTodos} />
       <TabBar setArrFilter={setArrFilter} arrFilter={arrFilter} info={info} />
       <TodoList
         arrOfTodos={arrOfTodos}
         arrFilter={arrFilter}
-        updateTodosInfo={() => updateTodosInfo()}
+        updateTodos={updateTodos}
       />
     </>
   )

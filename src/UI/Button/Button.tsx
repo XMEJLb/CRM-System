@@ -1,15 +1,16 @@
+import type { ReactNode } from 'react'
 import styles from './Button.module.css'
 
 interface ButtonProps {
-  children: string
+  children: ReactNode
   onClick?: React.MouseEventHandler<HTMLButtonElement>
-  type?: 'submit'
+  type?: 'submit' | 'button' | 'reset'
 }
 
 export const Button = ({ children, onClick, type }: ButtonProps) => {
   return (
     <button type={type} onClick={onClick} className={styles.button}>
-      <span> {children}</span>
+      {children}
     </button>
   )
 }

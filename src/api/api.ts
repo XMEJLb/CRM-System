@@ -1,8 +1,8 @@
-import type { Todo, Info } from '../types/types'
+import type { Todo, Info, Filter, MetaResponse } from '../types/types'
 
-export const getTodos = async (
-  filter: 'all' | 'inWork' | 'completed'
-): Promise<{ todos: Todo[]; info: Info } | undefined> => {
+export const getTodosMeta = async (
+  filter: Filter
+): Promise<MetaResponse<Todo, Info>> => {
   const response = await fetch(
     `https://easydev.club/api/v1/todos?filter=${filter}`
   )
@@ -11,10 +11,9 @@ export const getTodos = async (
     throw new Error(`${response.status}`)
   }
 
-  const { data, info } = await response.json()
-  const todos = data
+  const { data, info, meta } = await response.json()
 
-  return { todos, info }
+  return { data, info, meta }
 }
 
 export const postNewTodo = async (title: string) => {
@@ -58,7 +57,7 @@ export const putTodoIsDone = async (isDone: boolean, id: number) => {
   const response = await fetch(`https://easydev.club/api/v1/todos/${id}`, {
     method: 'PUT',
     body: JSON.stringify({
-      isDone: !isDone,
+      isDone: isDone,
     }),
   })
   if (!response.ok) {

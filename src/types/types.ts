@@ -10,3 +10,13 @@ export interface Info {
   completed: number
   inWork: number
 }
+
+export type Filter = 'all' | 'inWork' | 'completed'
+
+export interface MetaResponse<T, N> {
+  data: T[]
+  info?: N
+  meta: {
+    totalAmount: number
+  }
+}
