@@ -29,7 +29,7 @@ export const AddTodo = ({ updateTodosInfo }: AddTodoProps) => {
     }
 
     try {
-      await postNewTodo(todoTrimmed)
+      await postNewTodo(todoTrimmed, false)
       await updateTodosInfo()
       setTodo('')
     } catch (error) {

@@ -16,11 +16,16 @@ export const TodosPage = () => {
 
   const updateTodos = async () => {
     try {
-      const { data, info } = await getTodosMeta(arrFilter)
+      const response = await getTodosMeta(arrFilter)
+      if (!response) {
+        throw new Error('Ошибка ответа сервера')
+      }
+      const { data, info } = response
       if (data && info) {
-        console.log(data, info)
         setArrOfTodos(data.reverse())
         setInfo(info)
+      } else {
+        throw new Error('Неверные данные в ответе')
       }
     } catch (error) {
       alert(`Возникла ошибка ${error}`)
