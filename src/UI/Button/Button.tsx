@@ -4,10 +4,10 @@ import styles from './Button.module.css'
 interface ButtonProps {
   children: ReactNode
   onClick?: React.MouseEventHandler<HTMLButtonElement>
-  type?: 'submit' | 'button' | 'reset'
+  type: 'submit' | 'button' | 'reset'
 }
 
-export const Button = ({ children, onClick, type }: ButtonProps) => {
+export const Button = ({ children, onClick, type = 'button' }: ButtonProps) => {
   return (
     <button type={type} onClick={onClick} className={styles.button}>
       {children}
