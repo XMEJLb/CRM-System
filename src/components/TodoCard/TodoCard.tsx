@@ -1,116 +1,133 @@
-import { useEffect, useRef, useState } from 'react';
-import styles from './TodoCard.module.css';
-import type { TodoCardProps } from './TodoCard.props';
-import binIcon from '../../assets/bin-icon.svg';
-import penIcon from '../../assets/pen-icon.svg';
-import checkIcon from '../../assets/check-icon.svg';
-import crossIcon from '../../assets/cross-icon.svg';
-import { deleteTodo, putTodoIsDone, putTodoTitle } from '../../api/api';
-export const TodoCard = ({
-  children,
-  id,
-  isDone,
-  fetchAllTodos,
-}: TodoCardProps) => {
+import { deleteTodo, putTodoIsDone, putTodoTitle } from '@/api/api'
+import { useState } from 'react'
+import styles from './TodoCard.module.css'
+import penIcon from '@/assets/pen-icon.svg'
+import binIcon from '@/assets/bin-icon.svg'
+import checkIcon from '@/assets/check-icon.svg'
+import crossIcon from '@/assets/cross-icon.svg'
+import { ButtonIcon } from '@/UI/ButtonIcon/ButtonIcon'
+import type { Todo } from '@/types/types'
+import { MAX_TODO_LENGTH, MIN_TODO_LENGTH } from '@/constants'
+
+interface TodoCardProps {
+  todo: Todo
+  updateTodos: () => Promise<void>
+}
+
+export const TodoCard = ({ todo, updateTodos }: TodoCardProps) => {
+  const { title, id, isDone } = todo
+
   const handleDelete = async (id: number) => {
-    await deleteTodo(id);
-    await fetchAllTodos();
-  };
+    try {
+      await deleteTodo(id)
+      await updateTodos()
+    } catch (error) {
+      alert(`Возникла ошибка ${error}`)
+    }
+  }
 
   const updateTodoTittle = async (title: string, id: number) => {
-    putTodoTitle(title, id);
-    await fetchAllTodos();
-  };
+    try {
+      await putTodoTitle(title, id)
+      await updateTodos()
+    } catch (error) {
+      alert(`Возникла ошибка ${error}`)
+    }
+  }
 
   const changeTodoIsDone = async (isDone: boolean, id: number) => {
-    await putTodoIsDone(isDone, id);
-    await fetchAllTodos();
-  };
+    try {
+      await putTodoIsDone(!isDone, id)
+      await updateTodos()
+    } catch (error) {
+      alert(`Возникла ошибка ${error}`)
+    }
+  }
 
-  const [inputValue, setInputValue] = useState<string>(children);
-  const [inputValuebeforEdit, setInputValuebeforEdit] =
-    useState<string>(children);
+  const [inputValue, setInputValue] = useState<string>(title)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
-  };
+    setInputValue(e.target.value)
+  }
 
-  const [isDisable, setIsDisable] = useState<boolean>(true);
+  const [isEdit, setIsEdit] = useState<boolean>(true)
 
-  useEffect(() => {
-    if (!isDisable) {
-      inputRef.current?.focus();
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const inputValueTrimmed = inputValue.trim()
+    const length = inputValueTrimmed.length
+
+    const isTooLong = length > MAX_TODO_LENGTH
+    const isTooShort = length < MIN_TODO_LENGTH
+
+    if (isTooLong || isTooShort) {
+      alert(
+        `Поле должно быть от ${MIN_TODO_LENGTH} до ${MAX_TODO_LENGTH} символов и не состоять только из пробелов`
+      )
+      return
     }
-  }, [isDisable]);
 
-  const handleEdit = () => {
-    setIsDisable((s) => !s);
-    setInputValuebeforEdit(inputValue);
-  };
-
-  const handleSave = () => {
-    const inputValueTrimmed = inputValue.trim();
-    if (inputValueTrimmed) {
-      if (inputValueTrimmed.length > 2) {
-        updateTodoTittle(inputValueTrimmed, id);
-        setIsDisable((s) => !s);
-      } else {
-        inputRef.current?.focus();
-        alert('Заметка должна быть длиннее 2 символов');
-      }
-    } else {
-      setInputValue('');
-      inputRef.current?.focus();
-      alert('Заметка не должна содержать только пробелы');
+    try {
+      await updateTodoTittle(inputValueTrimmed, id)
+      setIsEdit(true)
+      return
+    } catch (error) {
+      alert(`Возникла ошибка: ${(error as Error).message}`)
     }
-  };
+  }
 
   const handleDeclineEdit = () => {
-    setIsDisable((s) => !s);
-    setInputValue(inputValuebeforEdit);
-  };
-
-  const inputRef = useRef<HTMLInputElement>(null);
+    setIsEdit(true)
+    setInputValue(title)
+  }
 
   return (
     <div className={styles.todoCard}>
       <input
+        className={styles.checkbox}
         type="checkbox"
         checked={isDone}
         onChange={() => changeTodoIsDone(isDone, id)}
       />
-      <input
-        ref={inputRef}
-        type="text"
-        minLength={2}
-        maxLength={64}
-        className={`${styles.input} ${isDone ? styles.checked : ''}`}
-        value={inputValue}
-        onChange={handleInputChange}
-        disabled={isDisable}
-      />
-
-      {isDisable && (
-        <div className={styles.buttonsWrapper}>
-          <button className={styles.button} onClick={handleEdit}>
-            <img className={styles.icon} src={penIcon} alt="pen" />
-          </button>
-          <button className={styles.button} onClick={() => handleDelete(id)}>
-            <img className={styles.icon} src={binIcon} alt="bin" />
-          </button>
-        </div>
+      {isEdit && (
+        <>
+          <input
+            type="text"
+            minLength={2}
+            maxLength={64}
+            className={`${styles.input} ${isDone ? styles.checked : ''}`}
+            value={inputValue}
+            onChange={handleInputChange}
+            disabled={isEdit}
+          />
+          <div className={styles.buttonsWrapper}>
+            <ButtonIcon onClick={() => setIsEdit(false)} imgSrc={penIcon} />
+            <ButtonIcon onClick={() => handleDelete(id)} imgSrc={binIcon} />
+          </div>
+        </>
       )}
 
-      {!isDisable && (
-        <div className={styles.buttonsWrapper}>
-          <button className={styles.button} onClick={handleSave}>
-            <img className={styles.icon} src={checkIcon} alt="check" />
-          </button>
-          <button className={styles.button} onClick={handleDeclineEdit}>
-            <img className={styles.icon} src={crossIcon} alt="cross" />
-          </button>
-        </div>
+      {!isEdit && (
+        <form onSubmit={handleSave} className={styles.form}>
+          <input
+            type="text"
+            minLength={2}
+            maxLength={64}
+            className={`${styles.input} ${isDone ? styles.checked : ''}`}
+            value={inputValue}
+            onChange={handleInputChange}
+            disabled={isEdit}
+          />
+          <div className={styles.buttonsWrapper}>
+            <ButtonIcon type="submit" imgSrc={checkIcon} />
+            <ButtonIcon
+              type="button"
+              onClick={handleDeclineEdit}
+              imgSrc={crossIcon}
+            />
+          </div>
+        </form>
       )}
     </div>
-  );
-};
+  )
+}

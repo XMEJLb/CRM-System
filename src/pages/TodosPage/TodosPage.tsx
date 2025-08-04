@@ -1,72 +1,51 @@
-import { useEffect, useState } from 'react';
-import { AddTodo } from '../../components/AddTodo/AddTodo';
-import styles from './TodosPage.module.css';
-import { DisplaySwitcher } from '../../components/DisplaySwitcher/DisplaySwitcher';
-import { TodoList } from '../../components/TodoList/TodoList';
-import { fetchAllTodos } from '../../api/api';
+import { useEffect, useState } from 'react'
+
+import type { Filter, Info, Todo } from '@/types/types'
+import { getTodosMeta } from '@/api/api'
+import { AddTodo } from '@/components/AddTodo/AddTodo'
+
+import { TodoList } from '@/components/TodoList/TodoList'
+import { TabBar } from '@/components/TabBar/TabBar'
 
 export const TodosPage = () => {
+  const [arrFilter, setArrFilter] = useState<Filter>('all')
+
+  const [arrOfTodos, setArrOfTodos] = useState<Todo[]>([])
+
+  const [info, setInfo] = useState<Info>({ all: 0, completed: 0, inWork: 0 })
+
+  const updateTodos = async () => {
+    try {
+      const response = await getTodosMeta(arrFilter)
+      if (!response) {
+        throw new Error('Ошибка ответа сервера')
+      }
+      const { data, info } = response
+      if (data && info) {
+        setArrOfTodos(data.reverse())
+        setInfo(info)
+      } else {
+        throw new Error('Неверные данные в ответе')
+      }
+    } catch (error) {
+      alert(`Возникла ошибка ${error}`)
+    }
+  }
+
   useEffect(() => {
-    fetchAllTodos(setArrOfTodos, setInfo);
-  }, []);
-
-  const [arrOfTodos, setArrOfTodos] = useState<
-    {
-      id: number;
-      title: string;
-      created: string;
-      isDone: boolean;
-    }[]
-  >([]);
-
-  const [info, setInfo] = useState<{
-    all: number;
-    completed: number;
-    inWork: number;
-  }>({ all: 0, completed: 0, inWork: 0 });
-
-  const [arrFilter, setArrFilter] = useState<'all' | 'inWork' | 'completed'>(
-    'all'
-  );
+    updateTodos()
+  }, [arrFilter])
 
   return (
     <>
       <h1>Ваши задачи</h1>
-      <AddTodo fetchAllTodos={() => fetchAllTodos(setArrOfTodos, setInfo)} />
-      <div className={styles.displaySwitcherWrapper}>
-        <DisplaySwitcher
-          isDisabled={arrFilter === 'all'}
-          text={'Все'}
-          count={info.all}
-          setArrFilter={() => {
-            fetchAllTodos(setArrOfTodos, setInfo);
-            setArrFilter('all');
-          }}
-        />
-        <DisplaySwitcher
-          text={'Активные'}
-          isDisabled={arrFilter === 'inWork'}
-          setArrFilter={() => {
-            fetchAllTodos(setArrOfTodos, setInfo);
-            setArrFilter('inWork');
-          }}
-          count={info.inWork}
-        />
-        <DisplaySwitcher
-          text={'Завершенные'}
-          isDisabled={arrFilter === 'completed'}
-          setArrFilter={() => {
-            fetchAllTodos(setArrOfTodos, setInfo);
-            setArrFilter('completed');
-          }}
-          count={info.completed}
-        />
-      </div>
+      <AddTodo updateTodosInfo={updateTodos} />
+      <TabBar setArrFilter={setArrFilter} arrFilter={arrFilter} info={info} />
       <TodoList
         arrOfTodos={arrOfTodos}
         arrFilter={arrFilter}
-        fetchAllTodos={() => fetchAllTodos(setArrOfTodos, setInfo)}
+        updateTodos={updateTodos}
       />
     </>
-  );
-};
+  )
+}

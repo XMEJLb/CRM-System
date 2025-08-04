@@ -1,38 +1,46 @@
-import { useState } from 'react';
-import { Button } from '../Button/Button';
-import styles from './AddTodo.module.css';
-import type { AddTodoProps } from './AddTodo.props';
-import { postNewTodo } from '../../api/api';
+import { useState } from 'react'
 
-export const AddTodo = ({ fetchAllTodos }: AddTodoProps) => {
-  const [todo, setTodo] = useState('');
+import styles from './AddTodo.module.css'
+import { postNewTodo } from '@/api/api'
+import { Button } from '@/UI/Button/Button'
+import { MAX_TODO_LENGTH, MIN_TODO_LENGTH } from '@/constants'
 
-  const addNewTodo = async (title: string) => {
-    await postNewTodo(title);
-    await fetchAllTodos();
-  };
+interface AddTodoProps {
+  updateTodosInfo: () => Promise<void>
+}
 
-  const handleInput = () => {
-    const todoTrimmed = todo.trim();
-    if (todoTrimmed) {
-      if (todoTrimmed.length > 2) {
-        addNewTodo(todoTrimmed);
-        setTodo('');
-      } else {
-        alert('Заметка должна быть длиннее 2 символов');
-      }
-    } else {
-      alert('Заметка не должна содержать только пробелы');
-      setTodo('');
+export const AddTodo = ({ updateTodosInfo }: AddTodoProps) => {
+  const [todo, setTodo] = useState<string>('')
+
+  const handleInput = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const todoTrimmed = todo.trim()
+
+    const isTooShort = length < MIN_TODO_LENGTH
+    const isTooLong = length > MAX_TODO_LENGTH
+
+    if (isTooShort || isTooLong) {
+      alert(
+        `Поле должно быть от ${MIN_TODO_LENGTH} до ${MAX_TODO_LENGTH} символов и не состоять только из пробелов`
+      )
+      return
     }
-  };
+
+    try {
+      await postNewTodo(todoTrimmed, false)
+      await updateTodosInfo()
+      setTodo('')
+    } catch (error) {
+      alert(`Возникла ошибка: ${(error as Error).message}`)
+    }
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTodo(e.target.value);
-  };
+    setTodo(e.target.value)
+  }
 
   return (
-    <div className={styles.addtodo}>
+    <form onSubmit={handleInput} className={styles.addtodo}>
       <input
         minLength={2}
         maxLength={64}
@@ -41,7 +49,7 @@ export const AddTodo = ({ fetchAllTodos }: AddTodoProps) => {
         className={styles.input}
         type="text"
       />
-      <Button onClick={handleInput}>Добавить</Button>
-    </div>
-  );
-};
+      <Button type="submit">Добавить</Button>
+    </form>
+  )
+}
