@@ -3,6 +3,7 @@ import { useState } from 'react'
 import styles from './AddTodo.module.css'
 import { postNewTodo } from '@/api/api'
 import { Button } from '@/UI/Button/Button'
+import { MAX_TODO_LENGTH, MIN_TODO_LENGTH } from '@/constants'
 
 interface AddTodoProps {
   updateTodosInfo: () => Promise<void>
@@ -10,9 +11,6 @@ interface AddTodoProps {
 
 export const AddTodo = ({ updateTodosInfo }: AddTodoProps) => {
   const [todo, setTodo] = useState<string>('')
-
-  const MIN_TODO_LENGTH = 2
-  const MAX_TODO_LENGTH = 63
 
   const handleInput = async (e: React.FormEvent) => {
     e.preventDefault()

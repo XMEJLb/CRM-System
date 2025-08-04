@@ -7,6 +7,7 @@ import checkIcon from '@/assets/check-icon.svg'
 import crossIcon from '@/assets/cross-icon.svg'
 import { ButtonIcon } from '@/UI/ButtonIcon/ButtonIcon'
 import type { Todo } from '@/types/types'
+import { MAX_TODO_LENGTH, MIN_TODO_LENGTH } from '@/constants'
 
 interface TodoCardProps {
   todo: Todo
@@ -50,9 +51,6 @@ export const TodoCard = ({ todo, updateTodos }: TodoCardProps) => {
   }
 
   const [isEdit, setIsEdit] = useState<boolean>(true)
-
-  const MIN_TODO_LENGTH = 2
-  const MAX_TODO_LENGTH = 63
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
