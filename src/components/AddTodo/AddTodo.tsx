@@ -1,8 +1,5 @@
-import { useState } from 'react'
-
-import styles from './AddTodo.module.css'
 import { postNewTodo } from '@/api/api'
-import { Button } from '@/UI/Button/Button'
+import { Button, Form, Input, message } from 'antd'
 import { MAX_TODO_LENGTH, MIN_TODO_LENGTH } from '@/constants'
 
 interface AddTodoProps {
@@ -10,46 +7,51 @@ interface AddTodoProps {
 }
 
 export const AddTodo = ({ updateTodosInfo }: AddTodoProps) => {
-  const [todo, setTodo] = useState<string>('')
+  const [form] = Form.useForm<{ todo: string }>()
 
-  const handleInput = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const todoTrimmed = todo.trim()
-
-    const isTooShort = length < MIN_TODO_LENGTH
-    const isTooLong = length > MAX_TODO_LENGTH
-
-    if (isTooShort || isTooLong) {
-      alert(
-        `Поле должно быть от ${MIN_TODO_LENGTH} до ${MAX_TODO_LENGTH} символов и не состоять только из пробелов`
-      )
-      return
-    }
-
+  const onFinish = async (values: { todo: string }) => {
     try {
-      await postNewTodo(todoTrimmed, false)
+      await postNewTodo(values.todo.trim())
       await updateTodosInfo()
-      setTodo('')
+      form.resetFields()
     } catch (error) {
-      alert(`Возникла ошибка: ${(error as Error).message}`)
+      message.error(`Возникла ошибка: ${(error as Error).message}`)
     }
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTodo(e.target.value)
   }
 
   return (
-    <form onSubmit={handleInput} className={styles.addtodo}>
-      <input
-        minLength={2}
-        maxLength={64}
-        value={todo}
-        onChange={handleInputChange}
-        className={styles.input}
-        type="text"
-      />
-      <Button type="submit">Добавить</Button>
-    </form>
+    <Form
+      form={form}
+      name="add-todo"
+      layout="inline"
+      onFinish={onFinish}
+      autoComplete="off"
+      validateTrigger="onSubmit"
+    >
+      <Form.Item<{ todo: string }>
+        name="todo"
+        rules={[
+          { required: true, whitespace: true, message: 'Введите текст' },
+          {
+            min: MIN_TODO_LENGTH,
+            transform: (v) => v?.trim(),
+            message: `Минимум ${MIN_TODO_LENGTH} символа`,
+          },
+          {
+            max: MAX_TODO_LENGTH,
+            transform: (v) => v?.trim(),
+            message: `Максимум ${MAX_TODO_LENGTH} символа`,
+          },
+        ]}
+      >
+        <Input allowClear style={{ width: 360 }} />
+      </Form.Item>
+
+      <Form.Item>
+        <Button type="primary" htmlType="submit">
+          Добавить
+        </Button>
+      </Form.Item>
+    </Form>
   )
 }

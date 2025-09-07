@@ -36,16 +36,19 @@ export const TodosPage = () => {
     updateTodos()
   }, [arrFilter])
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      updateTodos()
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [arrFilter])
+
   return (
     <>
-      <h1>Ваши задачи</h1>
       <AddTodo updateTodosInfo={updateTodos} />
       <TabBar setArrFilter={setArrFilter} arrFilter={arrFilter} info={info} />
-      <TodoList
-        arrOfTodos={arrOfTodos}
-        arrFilter={arrFilter}
-        updateTodos={updateTodos}
-      />
+      <TodoList arrOfTodos={arrOfTodos} updateTodos={updateTodos} />
     </>
   )
 }

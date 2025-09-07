@@ -1,13 +1,14 @@
-import { deleteTodo, putTodoIsDone, putTodoTitle } from '@/api/api'
 import { useState } from 'react'
-import styles from './TodoCard.module.css'
-import penIcon from '@/assets/pen-icon.svg'
-import binIcon from '@/assets/bin-icon.svg'
-import checkIcon from '@/assets/check-icon.svg'
-import crossIcon from '@/assets/cross-icon.svg'
-import { ButtonIcon } from '@/UI/ButtonIcon/ButtonIcon'
+import { Checkbox, Form, Input, Button, Space, message } from 'antd'
+import {
+  EditOutlined,
+  DeleteOutlined,
+  CheckOutlined,
+  CloseOutlined,
+} from '@ant-design/icons'
+import { deleteTodo, putTodoIsDone, putTodoTitle } from '@/api/api'
 import type { Todo } from '@/types/types'
-import { MAX_TODO_LENGTH, MIN_TODO_LENGTH } from '@/constants'
+import { MIN_TODO_LENGTH, MAX_TODO_LENGTH } from '@/constants'
 
 interface TodoCardProps {
   todo: Todo
@@ -15,119 +16,132 @@ interface TodoCardProps {
 }
 
 export const TodoCard = ({ todo, updateTodos }: TodoCardProps) => {
-  const { title, id, isDone } = todo
+  const { id, title, isDone } = todo
 
-  const handleDelete = async (id: number) => {
+  const [isEdit, setIsEdit] = useState(false)
+  const [form] = Form.useForm<{ title: string }>()
+
+  const onToggleDone = async (checked: boolean) => {
+    try {
+      await putTodoIsDone(checked, id)
+      await updateTodos()
+    } catch (e) {
+      message.error(`Не удалось изменить статус: ${(e as Error).message}`)
+    }
+  }
+
+  const onDelete = async () => {
     try {
       await deleteTodo(id)
       await updateTodos()
-    } catch (error) {
-      alert(`Возникла ошибка ${error}`)
+      message.success('Задача удалена')
+    } catch (e) {
+      message.error(`Не удалось удалить: ${(e as Error).message}`)
     }
   }
 
-  const updateTodoTittle = async (title: string, id: number) => {
-    try {
-      await putTodoTitle(title, id)
-      await updateTodos()
-    } catch (error) {
-      alert(`Возникла ошибка ${error}`)
-    }
-  }
-
-  const changeTodoIsDone = async (isDone: boolean, id: number) => {
-    try {
-      await putTodoIsDone(!isDone, id)
-      await updateTodos()
-    } catch (error) {
-      alert(`Возникла ошибка ${error}`)
-    }
-  }
-
-  const [inputValue, setInputValue] = useState<string>(title)
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value)
-  }
-
-  const [isEdit, setIsEdit] = useState<boolean>(true)
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const inputValueTrimmed = inputValue.trim()
-    const length = inputValueTrimmed.length
-
-    const isTooLong = length > MAX_TODO_LENGTH
-    const isTooShort = length < MIN_TODO_LENGTH
-
-    if (isTooLong || isTooShort) {
-      alert(
-        `Поле должно быть от ${MIN_TODO_LENGTH} до ${MAX_TODO_LENGTH} символов и не состоять только из пробелов`
-      )
-      return
-    }
-
-    try {
-      await updateTodoTittle(inputValueTrimmed, id)
-      setIsEdit(true)
-      return
-    } catch (error) {
-      alert(`Возникла ошибка: ${(error as Error).message}`)
-    }
-  }
-
-  const handleDeclineEdit = () => {
+  const startEdit = () => {
     setIsEdit(true)
-    setInputValue(title)
+  }
+
+  const cancelEdit = () => {
+    setIsEdit(false)
+    form.resetFields()
+  }
+
+  const onFinish = async ({ title }: { title: string }) => {
+    const value = title.trim()
+    try {
+      await putTodoTitle(value, id)
+      await updateTodos()
+      setIsEdit(false)
+      message.success('Задача обновлена')
+    } catch (e) {
+      message.error(`Не удалось обновить: ${(e as Error).message}`)
+    }
   }
 
   return (
-    <div className={styles.todoCard}>
-      <input
-        className={styles.checkbox}
-        type="checkbox"
+    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+      <Checkbox
         checked={isDone}
-        onChange={() => changeTodoIsDone(isDone, id)}
+        onChange={(e) => onToggleDone(e.target.checked)}
       />
-      {isEdit && (
-        <>
-          <input
-            type="text"
-            minLength={2}
-            maxLength={64}
-            className={`${styles.input} ${isDone ? styles.checked : ''}`}
-            value={inputValue}
-            onChange={handleInputChange}
-            disabled={isEdit}
-          />
-          <div className={styles.buttonsWrapper}>
-            <ButtonIcon onClick={() => setIsEdit(false)} imgSrc={penIcon} />
-            <ButtonIcon onClick={() => handleDelete(id)} imgSrc={binIcon} />
-          </div>
-        </>
-      )}
 
-      {!isEdit && (
-        <form onSubmit={handleSave} className={styles.form}>
-          <input
-            type="text"
-            minLength={2}
-            maxLength={64}
-            className={`${styles.input} ${isDone ? styles.checked : ''}`}
-            value={inputValue}
-            onChange={handleInputChange}
-            disabled={isEdit}
+      <Form
+        key={`${id}-${title}`}
+        form={form}
+        layout="inline"
+        style={{ flex: 1 }}
+        onFinish={onFinish}
+        initialValues={{ title }}
+        validateTrigger="onSubmit"
+      >
+        <Form.Item
+          name="title"
+          style={{ flex: 1 }}
+          rules={[
+            { required: true, whitespace: true, message: 'Введите текст' },
+            {
+              min: MIN_TODO_LENGTH,
+              transform: (v) => v?.trim(),
+              message: `Минимум ${MIN_TODO_LENGTH} символов`,
+            },
+            {
+              max: MAX_TODO_LENGTH,
+              transform: (v) => v?.trim(),
+              message: `Максимум ${MAX_TODO_LENGTH} символов`,
+            },
+          ]}
+        >
+          <Input
+            style={{
+              height: 15,
+              width: 350,
+              color: 'black',
+              textDecoration: isDone ? 'line-through' : undefined,
+            }}
+            disabled={!isEdit}
+            variant="borderless"
           />
-          <div className={styles.buttonsWrapper}>
-            <ButtonIcon type="submit" imgSrc={checkIcon} />
-            <ButtonIcon
-              type="button"
-              onClick={handleDeclineEdit}
-              imgSrc={crossIcon}
-            />
-          </div>
-        </form>
-      )}
+        </Form.Item>
+        <Space>
+          {isEdit && (
+            <Space style={{ flex: 1, gap: 0.5 }}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<CheckOutlined />}
+                aria-label="Сохранить"
+              />
+              <Button
+                type="default"
+                onClick={cancelEdit}
+                icon={<CloseOutlined />}
+                aria-label="Отменить"
+              />
+            </Space>
+          )}
+
+          {!isEdit && (
+            <Space style={{ flex: 1, gap: 0 }}>
+              <Button
+                type="text"
+                icon={<EditOutlined />}
+                onClick={startEdit}
+                aria-label="Редактировать"
+              />
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={onDelete}
+                aria-label="Удалить"
+              />
+            </Space>
+          )}
+        </Space>
+      </Form>
     </div>
   )
 }

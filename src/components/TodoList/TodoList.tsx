@@ -1,37 +1,25 @@
-import type { Filter, Todo } from '@/types/types'
-import styles from './TodoList.module.css'
+import type { Todo } from '@/types/types'
+import { List } from 'antd'
 import { TodoCard } from '@components/TodoCard/TodoCard'
 
 interface TodoListProps {
   arrOfTodos: Todo[]
-  arrFilter: Filter
   updateTodos: () => Promise<void>
 }
 
-export const TodoList = ({
-  arrOfTodos,
-  arrFilter,
-  updateTodos,
-}: TodoListProps) => {
+export const TodoList = ({ arrOfTodos, updateTodos }: TodoListProps) => {
   return (
-    <div className={styles.todolist}>
-      {!arrOfTodos.length && 'Нет задач'}
-      {arrFilter === 'all' &&
-        arrOfTodos.map((el) => (
-          <TodoCard key={el.id} todo={el} updateTodos={updateTodos} />
-        ))}
-      {arrFilter === 'inWork' &&
-        arrOfTodos
-          .filter((el) => el.isDone === false)
-          .map((el) => (
-            <TodoCard key={el.id} todo={el} updateTodos={updateTodos} />
-          ))}
-      {arrFilter === 'completed' &&
-        arrOfTodos
-          .filter((el) => el.isDone === true)
-          .map((el) => (
-            <TodoCard key={el.id} todo={el} updateTodos={updateTodos} />
-          ))}
-    </div>
+    <List
+      split
+      bordered={false}
+      itemLayout="horizontal"
+      dataSource={arrOfTodos}
+      locale={{ emptyText: 'Нет задач' }}
+      renderItem={(item, index) => (
+        <List.Item key={item.id ?? index} style={{ paddingInline: 0 }}>
+          <TodoCard todo={item} updateTodos={updateTodos} />
+        </List.Item>
+      )}
+    />
   )
 }
