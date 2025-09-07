@@ -1,37 +1,33 @@
-import axios from 'axios';
-import type { Todo, Info, Filter, MetaResponse } from '../types/types';
-
-const API_URL = 'https://easydev.club/api/v1/todos';
+import type { Todo, Info, Filter, MetaResponse } from '../types/types'
+import { api } from './axios'
 
 export const getTodosMeta = async (
   filter: Filter
 ): Promise<MetaResponse<Todo, Info>> => {
-  const response = await axios.get(`${API_URL}?filter=${filter}`);
+  const response = await api.get('/todos', { params: { filter } })
 
-  const { data, info, meta } = response.data;
+  return response.data
+}
 
-  return { data, info, meta };
-};
-
-export const postNewTodo = async (title: string, isDone: boolean) => {
-  return axios.post(`${API_URL}`, {
+export const postNewTodo = async (title: string) => {
+  return api.post('/todos', {
     title: title,
-    isDone: isDone,
-  });
-};
+    isDone: false,
+  })
+}
 
 export const deleteTodo = async (id: number) => {
-  return axios.delete(`${API_URL}/${id}`);
-};
+  return api.delete(`/todos/${id}`)
+}
 
 export const putTodoTitle = async (title: string, id: number) => {
-  return axios.put(`${API_URL}/${id}`, {
+  return api.put(`$/todos/${id}`, {
     title: title,
-  });
-};
+  })
+}
 
 export const putTodoIsDone = async (isDone: boolean, id: number) => {
-  return axios.put(`${API_URL}/${id}`, {
+  return api.put(`/todos/${id}`, {
     isDone: isDone,
-  });
-};
+  })
+}

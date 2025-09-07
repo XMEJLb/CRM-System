@@ -1,70 +1,65 @@
-import { useState, useEffect } from 'react';
-import { Checkbox, Form, Input, Button, Space, message } from 'antd';
+import { useState } from 'react'
+import { Checkbox, Form, Input, Button, Space, message } from 'antd'
 import {
   EditOutlined,
   DeleteOutlined,
   CheckOutlined,
   CloseOutlined,
-} from '@ant-design/icons';
-import { deleteTodo, putTodoIsDone, putTodoTitle } from '@/api/api';
-import type { Todo } from '@/types/types';
-import { MIN_TODO_LENGTH, MAX_TODO_LENGTH } from '@/constants';
+} from '@ant-design/icons'
+import { deleteTodo, putTodoIsDone, putTodoTitle } from '@/api/api'
+import type { Todo } from '@/types/types'
+import { MIN_TODO_LENGTH, MAX_TODO_LENGTH } from '@/constants'
 
 interface TodoCardProps {
-  todo: Todo;
-  updateTodos: () => Promise<void>;
+  todo: Todo
+  updateTodos: () => Promise<void>
 }
 
 export const TodoCard = ({ todo, updateTodos }: TodoCardProps) => {
-  const { id, title, isDone } = todo;
+  const { id, title, isDone } = todo
 
-  const [editing, setEditing] = useState(false);
-  const [form] = Form.useForm<{ title: string }>();
-
-  useEffect(() => {
-    form.setFieldsValue({ title });
-  }, [title, form]);
+  const [isEdit, setIsEdit] = useState(false)
+  const [form] = Form.useForm<{ title: string }>()
 
   const onToggleDone = async (checked: boolean) => {
     try {
-      await putTodoIsDone(checked, id);
-      await updateTodos();
+      await putTodoIsDone(checked, id)
+      await updateTodos()
     } catch (e) {
-      message.error(`Не удалось изменить статус: ${(e as Error).message}`);
+      message.error(`Не удалось изменить статус: ${(e as Error).message}`)
     }
-  };
+  }
 
   const onDelete = async () => {
     try {
-      await deleteTodo(id);
-      await updateTodos();
-      message.success('Задача удалена');
+      await deleteTodo(id)
+      await updateTodos()
+      message.success('Задача удалена')
     } catch (e) {
-      message.error(`Не удалось удалить: ${(e as Error).message}`);
+      message.error(`Не удалось удалить: ${(e as Error).message}`)
     }
-  };
+  }
 
   const startEdit = () => {
-    form.setFieldsValue({ title });
-    setEditing(true);
-  };
+    setIsEdit(true)
+  }
 
   const cancelEdit = () => {
-    setEditing(false);
-    form.resetFields();
-  };
+    setIsEdit(false)
+    form.resetFields()
+  }
 
   const onFinish = async ({ title }: { title: string }) => {
-    const value = title.trim();
+    const value = title.trim()
     try {
-      await putTodoTitle(value, id);
-      await updateTodos();
-      setEditing(false);
-      message.success('Задача обновлена');
+      await putTodoTitle(value, id)
+      await updateTodos()
+      setIsEdit(false)
+      message.success('Задача обновлена')
     } catch (e) {
-      message.error(`Не удалось обновить: ${(e as Error).message}`);
+      message.error(`Не удалось обновить: ${(e as Error).message}`)
     }
-  };
+  }
 
   return (
     <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -74,6 +69,7 @@ export const TodoCard = ({ todo, updateTodos }: TodoCardProps) => {
       />
 
       <Form
+        key={`${id}-${title}`}
         form={form}
         layout="inline"
         style={{ flex: 1 }}
@@ -105,12 +101,12 @@ export const TodoCard = ({ todo, updateTodos }: TodoCardProps) => {
               color: 'black',
               textDecoration: isDone ? 'line-through' : undefined,
             }}
-            disabled={!editing}
+            disabled={!isEdit}
             variant="borderless"
           />
         </Form.Item>
         <Space>
-          {editing && (
+          {isEdit && (
             <Space style={{ flex: 1, gap: 0.5 }}>
               <Button
                 type="primary"
@@ -127,7 +123,7 @@ export const TodoCard = ({ todo, updateTodos }: TodoCardProps) => {
             </Space>
           )}
 
-          {!editing && (
+          {!isEdit && (
             <Space style={{ flex: 1, gap: 0 }}>
               <Button
                 type="text"
@@ -139,13 +135,13 @@ export const TodoCard = ({ todo, updateTodos }: TodoCardProps) => {
                 type="text"
                 danger
                 icon={<DeleteOutlined />}
-                aria-label="Удалить"
                 onClick={onDelete}
+                aria-label="Удалить"
               />
             </Space>
           )}
         </Space>
       </Form>
     </div>
-  );
-};
+  )
+}

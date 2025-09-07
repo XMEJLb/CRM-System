@@ -1,23 +1,23 @@
-import { postNewTodo } from '@/api/api';
-import { Button, Form, Input, message } from 'antd';
-import { MAX_TODO_LENGTH, MIN_TODO_LENGTH } from '@/constants';
+import { postNewTodo } from '@/api/api'
+import { Button, Form, Input, message } from 'antd'
+import { MAX_TODO_LENGTH, MIN_TODO_LENGTH } from '@/constants'
 
 interface AddTodoProps {
-  updateTodosInfo: () => Promise<void>;
+  updateTodosInfo: () => Promise<void>
 }
 
 export const AddTodo = ({ updateTodosInfo }: AddTodoProps) => {
-  const [form] = Form.useForm<{ todo: string }>();
+  const [form] = Form.useForm<{ todo: string }>()
 
   const onFinish = async (values: { todo: string }) => {
     try {
-      await postNewTodo(values.todo.trim(), false);
-      await updateTodosInfo();
-      form.resetFields();
+      await postNewTodo(values.todo.trim())
+      await updateTodosInfo()
+      form.resetFields()
     } catch (error) {
-      message.error(`Возникла ошибка: ${(error as Error).message}`);
+      message.error(`Возникла ошибка: ${(error as Error).message}`)
     }
-  };
+  }
 
   return (
     <Form
@@ -47,11 +47,11 @@ export const AddTodo = ({ updateTodosInfo }: AddTodoProps) => {
         <Input allowClear style={{ width: 360 }} />
       </Form.Item>
 
-      <Form.Item label={null}>
+      <Form.Item>
         <Button type="primary" htmlType="submit">
           Добавить
         </Button>
       </Form.Item>
     </Form>
-  );
-};
+  )
+}

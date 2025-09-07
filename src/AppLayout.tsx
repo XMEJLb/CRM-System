@@ -1,17 +1,23 @@
-import { Outlet } from 'react-router';
-import { SideMenu } from './components/SideMenu/SideMenu';
+import { Outlet } from 'react-router'
+import { SideMenu } from './components/SideMenu/SideMenu'
+import { Layout } from 'antd'
+
+const { Content, Sider } = Layout
 
 function AppLayout() {
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <div style={{ width: 150, borderRight: '1px solid #f0f0f0' }}>
+    <Layout style={{ minHeight: '100vh', width: '100%' }}>
+      <Sider width={240}>
         <SideMenu />
-      </div>
-      <div style={{ flex: 1, padding: 16, width: 700 }}>
-        <Outlet />
-      </div>
-    </div>
-  );
+      </Sider>
+
+      <Layout style={{ background: '#fff' }}>
+        <Content style={{ background: '#fff', padding: 16 }}>
+          <Outlet />
+        </Content>
+      </Layout>
+    </Layout>
+  )
 }
 
-export default AppLayout;
+export default AppLayout

@@ -1,14 +1,14 @@
-import type { Filter, Info } from '@/types/types';
-import { Badge, Tabs, type TabsProps, theme } from 'antd';
+import type { Filter, Info } from '@/types/types'
+import { Badge, Tabs, type TabsProps, theme } from 'antd'
 
 interface TabBar {
-  setArrFilter: (filter: Filter) => void;
-  arrFilter: Filter;
-  info: Info;
+  setArrFilter: (filter: Filter) => void
+  arrFilter: Filter
+  info: Info
 }
 
 export const TabBar = ({ setArrFilter, info, arrFilter }: TabBar) => {
-  const { token } = theme.useToken();
+  const { token } = theme.useToken()
   const items: TabsProps['items'] = [
     {
       key: 'all',
@@ -52,22 +52,10 @@ export const TabBar = ({ setArrFilter, info, arrFilter }: TabBar) => {
         </span>
       ),
     },
-  ];
+  ]
 
-  const onChange = (key: string) => {
-    switch (key) {
-      case 'all':
-        setArrFilter('all');
-        break;
-      case 'inWork':
-        setArrFilter('inWork');
-        break;
-      case 'completed':
-        setArrFilter('completed');
-        break;
-    }
-  };
-  return (
-    <Tabs defaultActiveKey={arrFilter} items={items} onChange={onChange} />
-  );
-};
+  const onChange: TabsProps['onChange'] = (key) => {
+    setArrFilter(key as Filter)
+  }
+  return <Tabs defaultActiveKey={arrFilter} items={items} onChange={onChange} />
+}
