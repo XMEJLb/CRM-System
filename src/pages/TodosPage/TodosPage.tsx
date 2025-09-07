@@ -36,6 +36,14 @@ export const TodosPage = () => {
     updateTodos()
   }, [arrFilter])
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      updateTodos()
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [arrFilter])
+
   return (
     <>
       <AddTodo updateTodosInfo={updateTodos} />
